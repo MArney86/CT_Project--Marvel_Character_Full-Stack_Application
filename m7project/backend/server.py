@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 
 # MySQL database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:YOUR_PASSWORD_HERE@localhost/marvel'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:9ijn6tfc@localhost/marvel'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
@@ -59,7 +59,7 @@ characters_schema = CharacterSchema(many=True) #Can serialize many Trainer objec
 
 
 def create_database():
-    root_engine = create_engine("mysql+mysqlconnector://root:YOUR_PASSWORD_HERE@localhost")  # No database specified
+    root_engine = create_engine("mysql+mysqlconnector://root:9ijn6tfc@localhost")  # No database specified
     with root_engine.connect() as connection:
         connection.execute(text("CREATE DATABASE IF NOT EXISTS marvel"))
 
