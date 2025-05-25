@@ -12,11 +12,8 @@ export default function NavBar() {
                 <Navbar.Toggle aria-controls='navbar-nav' />
                 <Navbar.Collapse id="navbar-nav">
                     <Nav className='d-flex align-items-center gap-3'>
-                        <Navbar.Text>&#8739;</Navbar.Text>
                         <Navbar.Text><NavLink to="/" end>Home</NavLink></Navbar.Text>
-                        <Navbar.Text>&#8739;</Navbar.Text>
                         <Navbar.Text><NavLink to="/characters" end>Heros/Villains</NavLink></Navbar.Text>
-                        <Navbar.Text>&#8739;</Navbar.Text>
                         <NavDropdown title='Edit Characters' id="nav-dropdown">
                             <NavDropdown.Item href="/AddCharacter">Add a Character</NavDropdown.Item>
                             <NavDropdown.Item href="/EditCharacter">Update/Modify a Character</NavDropdown.Item>
