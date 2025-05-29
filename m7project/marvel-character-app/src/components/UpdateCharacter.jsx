@@ -29,13 +29,16 @@ export default function EditProduct() {
     const idNameList = [];
 
     useEffect(() => {
-        axios.get('127.0.0.1:5000/characters')
+        setLoading(true); // enable loading before fetching data
+        setError(null); // Reset any possible lingering errors from previous operations
+        axios.get('127.0.0.1:5000/characters') // Fetch all characters from backend
         .then(response => {
             // Populate the idNameList with character IDs and names
             response.data.forEach(char => {
                 idNameList.push({id: char.id, name: char.name})
             });
-        }).catch(err => {
+        }).catch(err => { // Handle errors during fetch
+            setLoading(false); // disable loading so error can be displayed
             setError(`Could not fetch character list: ${err.message}`);
             console.error("Error fetching character list:", err);
         })
@@ -104,7 +107,7 @@ export default function EditProduct() {
         <>
             <Container className="mt-5">
                 <h2>Edit Character</h2>
-                <FormModal character={character} submitted={submitted} showModal={showModal} handleCloseModal={handleCloseModal} request={"post"} error={error} />
+                <FormModal character={character} submitted={submitted} showModal={showModal} handleCloseModal={handleCloseModal} request={"put"} error={error} />
 
                 <Form onSubmit={handleSubmit} noValidate validated={validated}>
                     <Row>
