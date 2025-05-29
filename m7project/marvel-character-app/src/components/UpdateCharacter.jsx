@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
@@ -6,42 +6,74 @@ import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
-import APIModal from './ApiModal';
+import FormModal from './FormModal';
 import axios from 'axios';
 
-export default function AddProduct({loading, setLoading, error, setError}) {
+export default function EditProduct() {
 
-  const [formData, setFormData] = useState({
-    id: 0,
-    name: "",
-    alias: "",
-    powers: "",
-    alignment: "",
-    image_url: "",
-  });
+    const [formData, setFormData] = useState({
+        id: 0,
+        name: "",
+        alias: "",
+        alignment: "",
+        powers: "",
+        image_url: "",
+    });
+    
+    const [submitted, setSubmitted] = useState(false);
+    const [character, setCharacter] = useState(null);
+    const [error, setError] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const handleCloseModal = () => setShowModal(false);
+    const [validated, setValidated] = useState(false);
+    const idNameList = [];
 
-  const [submitted, setSubmitted] = useState(false);
-  const [character, setCharacter] = useState({
-    id: 0,
-    name: "",
-    alias: "",
-    powers: "",
-    alignment: "",
-    image_url: "",
-  });
-  const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const handleCloseModal = () => setShowModal(false);
-  const [validated, setValidated] = useState(false);
+    useEffect(() => {
+        axios.get('127.0.0.1:5000/characters')
+        .then(response => {
+            // Populate the idNameList with character IDs and names
+            response.data.forEach(char => {
+                idNameList.push({id: char.id, name: char.name})
+            });
+        }).catch(err => {
+            setError(`Could not fetch character list: ${err.message}`);
+            console.error("Error fetching character list:", err);
+        })
+
+    }, []);
+    
+    useEffect(() => {
+        setLoading(true);
+        setError(null);
+
+        // Fetch character data if an ID is provided
+        if (formData.id && formData.id > 0) {
+            axios.get(`127.0.0.1:5000/characters/${formData.id}`)
+            .then(response => {
+                setFormData({
+                    id: response.data.id,
+                    name: response.data.name,
+                    alias: response.data.alias,
+                    alignment: response.data.alignment,
+                    powers: response.data.powers,
+                    image_url: response.data.image_url,
+                });
+                setError(null);
+            }) .catch (err => {
+                setError(`Could not fetch character: ${err.message}`);
+            });
+        }
+    }, [formData.id]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
 
         setFormData({
             ...formData,
-            [name]: value
+            [name]: name === 'id' ? parseInt(value): value
         });
-    }    
+    }
+    
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -51,17 +83,18 @@ export default function AddProduct({loading, setLoading, error, setError}) {
         const form = e.currentTarget;
         if (form.checkValidity() === false) {
             e.stopPropagation();
-            setError("Please fill out all required fields correctly.");
         } else {
             try {
-                const response = await axios.post('127.0.0.1:5000/characters', formData);
-                setProduct(response.data);
+                const response = await axios.put(`127.0.0.1:5000/characters/${formData.id}`, formData);
+                setCharacter(response.data);
                 setSubmitted(true);
                 setShowModal(true);
                 setError(null);
             } catch (err) {
                 setError(`Error submitting the form. Please try again: ${err.message}`);
                 setSubmitted(false);
+                setShowModal(true);
+                console.error("Error submitting the form:", err);
             }
         }
         setValidated(true);
@@ -70,11 +103,25 @@ export default function AddProduct({loading, setLoading, error, setError}) {
     return (
         <>
             <Container className="mt-5">
-                <h2>Add New Product</h2>
+                <h2>Edit Character</h2>
                 <FormModal character={character} submitted={submitted} showModal={showModal} handleCloseModal={handleCloseModal} request={"post"} error={error} />
 
                 <Form onSubmit={handleSubmit} noValidate validated={validated}>
                     <Row>
+                        <Col md="6">
+                            <FloatingLabel controlId="formId" label="ID" className="mb-2 mt-2">
+                                <Form.Select aria-label="Select Character ID from the list" >
+                                    <option>Please select the ID of the character to update</option>
+                                    { idNameList.map((char) => (
+                                        <option key={char.id} value={char.id} onClick={() => setFormData({...formData, id: char.id})}>id: {char.id}, name: {char.name}</option>
+                                    ))}
+                                </Form.Select>
+                                <Form.Control.Feedback type="invalid">
+                                    Please select a character ID to continue.
+                                </Form.Control.Feedback>
+                            </FloatingLabel>
+                        </Col>
+
                         <Col md="6">
                             <FloatingLabel controlId="formName" label="Name" className="mb-2 mt-2">
                                 <Form.Control
@@ -90,8 +137,10 @@ export default function AddProduct({loading, setLoading, error, setError}) {
                                 </Form.Control.Feedback>
                             </FloatingLabel>
                         </Col>
+                    </Row>
 
-                        <Col md="6">
+                    <Row>
+                        <Col md="8">
                             <FloatingLabel controlId="formAlias" label="Alias" className="mb-2 mt-2">
                                 <Form.Control
                                     type="Text"
@@ -106,9 +155,7 @@ export default function AddProduct({loading, setLoading, error, setError}) {
                                 </Form.Control.Feedback>
                             </FloatingLabel>
                         </Col>
-                    </Row>
 
-                    <Row>
                         <Col md="4" className='d-flex'>
                             <Container className='d-flex flex-column justify-content-center align-items-center'>
                                 <Row>
@@ -120,7 +167,7 @@ export default function AddProduct({loading, setLoading, error, setError}) {
                                             value="hero"
                                             id="heroRadio"
                                             label="Hero"
-                                            onChange={handleChange}
+                                            onChange={handleRadioChange}
                                             isInvalid={formData.alignment === ""}
                                             feedback="Please choose an alignment"
                                             feedbackType='invalid'
@@ -131,7 +178,7 @@ export default function AddProduct({loading, setLoading, error, setError}) {
                                             value="villain"
                                             id="villainRadio"
                                             lable="Villain"
-                                            onChange={handleChange}
+                                            onChange={handleRadioChange}
                                             isInvalid={formData.alignment === ""}
                                             feedback="Please choose an alignment"
                                             feedbackType='invalid'
@@ -140,8 +187,10 @@ export default function AddProduct({loading, setLoading, error, setError}) {
                                 </Row>
                             </Container>
                         </Col>
+                    </Row>
 
-                        <Col md="8">
+                    <Row>
+                        <Col md="6">
                             <FloatingLabel controlId="formPowers" label="Powers" className="mb-2 mt-2">
                                 <Form.Control
                                     as="textarea"
@@ -157,10 +206,8 @@ export default function AddProduct({loading, setLoading, error, setError}) {
                                 </Form.Control.Feedback>
                             </FloatingLabel>
                         </Col>
-                    </Row>
-
-                    <Row>
-                        <Col md="12">
+                    
+                        <Col md="6">
                             <FloatingLabel controlId="formImageURL" label="Character Image URL" className="mb-2 mt-2">
                                 <Form.Control
                                     type="url"
