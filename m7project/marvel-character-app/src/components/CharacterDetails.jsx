@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import axios from "axios";
 import Table from 'react-bootstrap/Table'
 import Alert from 'react-bootstrap/Alert'
+import Spinner from 'react-bootstrap/Spinner'
 
 export default function CharacerDetails ({loading, setLoading, error, setError}) {
     const { characterId } = useParams();
@@ -42,14 +43,17 @@ export default function CharacerDetails ({loading, setLoading, error, setError})
     }
 
 
-    if (loading) {
-        return <div className="text-center">Loading...</div>;
-    }
+
     return(
         <div className="container d-flex flex-column justify-content-center align-items-center min-vh-100">
+            {loading && (<div className="position-absolute w-100 h-100 bg-secondary bg-opacity-50">
+                <div className="d-flex justify-content-center align-items-center h-100 w-100">
+                    <Spinner animation="border" role="status" variant="secondary" />
+                </div>
+            </div>)}
             <div className="text-center w-75">
                 <h1 className="mb-4">{character.name}</h1>
-                <img  className="border border-3 rounded-3 border-secondary-subtle m-3 p-2" src={character.image_url} />
+                <img  className="border border-3 rounded-3 border-secondary-subtle m-3 p-2" src={character.image_url === '' ? null:character.image_url} />
                 <h4>a.k.a.: {character.alias}</h4>
                 <div className="d-flex justify-content-center">
                     <Table hover className="w-25 fw-bold">

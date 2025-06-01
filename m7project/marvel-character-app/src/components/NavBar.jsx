@@ -15,9 +15,9 @@ export default function NavBar() {
                         <Navbar.Text><NavLink to="/" end>Home</NavLink></Navbar.Text>
                         <Navbar.Text><NavLink to="/characters" end>Heros/Villains</NavLink></Navbar.Text>
                         <NavDropdown title='Edit Characters' id="nav-dropdown">
-                            <NavDropdown.Item href="/AddCharacter">Add a Character</NavDropdown.Item>
-                            <NavDropdown.Item href="/EditCharacter">Update/Modify a Character</NavDropdown.Item>
-                            <NavDropdown.Item href="/DeleteCharacter">Delete a Character</NavDropdown.Item>
+                            <NavDropdown.Item href="/new">Add a Character</NavDropdown.Item>
+                            <NavDropdown.Item href="/update">Update/Modify a Character</NavDropdown.Item>
+                            <NavDropdown.Item href="/delete">Delete a Character</NavDropdown.Item>
                         </NavDropdown>
                     </Nav>
                 </Navbar.Collapse>

@@ -6,7 +6,7 @@ import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
-import APIModal from './ApiModal';
+import FormModal from './FormModal';
 import axios from 'axios';
 
 export default function AddProduct({loading, setLoading, error, setError}) {
@@ -29,7 +29,6 @@ export default function AddProduct({loading, setLoading, error, setError}) {
     alignment: "",
     image_url: "",
   });
-  const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const handleCloseModal = () => setShowModal(false);
   const [validated, setValidated] = useState(false);
@@ -54,7 +53,7 @@ export default function AddProduct({loading, setLoading, error, setError}) {
             setError("Please fill out all required fields correctly.");
         } else {
             try {
-                const response = await axios.post('127.0.0.1:5000/characters', formData);
+                const response = await axios.post('http://127.0.0.1:5000/characters', formData);
                 setProduct(response.data);
                 setSubmitted(true);
                 setShowModal(true);
@@ -74,6 +73,11 @@ export default function AddProduct({loading, setLoading, error, setError}) {
                 <FormModal character={character} submitted={submitted} showModal={showModal} handleCloseModal={handleCloseModal} request={"post"} error={error} />
 
                 <Form onSubmit={handleSubmit} noValidate validated={validated}>
+                    {loading && (<div className='position-absolute w-100 h-100 bg-secondary bg-opacity-50'>
+                        <div className="d-flex justify-content-center align-items-center h-100 w-100">
+                            <Spinner as="span" animation="border" role="status" variant="info" /><span className='text-info'>loading...</span>
+                        </div>
+                    </div>) }
                     <Row>
                         <Col md="6">
                             <FloatingLabel controlId="formName" label="Name" className="mb-2 mt-2">
@@ -130,7 +134,7 @@ export default function AddProduct({loading, setLoading, error, setError}) {
                                             name="alignment"
                                             value="villain"
                                             id="villainRadio"
-                                            lable="Villain"
+                                            label="Villain"
                                             onChange={handleChange}
                                             isInvalid={formData.alignment === ""}
                                             feedback="Please choose an alignment"

@@ -1,6 +1,7 @@
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Table from 'react-bootstrap/Table';
+import Alert from 'react-bootstrap/Alert'
 
 export default function FormModal({ character, submitted, showModal, handleCloseModal, request, error  }) {
     let aknowldegement = "";

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useParams } from "react-router-dom";
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Col from 'react-bootstrap/Col';
@@ -6,10 +7,11 @@ import Row from 'react-bootstrap/Row';
 import Button from 'react-bootstrap/Button';
 import Alert from 'react-bootstrap/Alert';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
+import Spinner from 'react-bootstrap/Spinner';
 import FormModal from './FormModal';
 import axios from 'axios';
 
-export default function EditProduct() {
+export default function UpdateCharacter( {loading, setLoading, error, setError}) {
 
     const [formData, setFormData] = useState({
         id: 0,
@@ -22,26 +24,34 @@ export default function EditProduct() {
     
     const [submitted, setSubmitted] = useState(false);
     const [character, setCharacter] = useState(null);
-    const [error, setError] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const handleCloseModal = () => setShowModal(false);
     const [validated, setValidated] = useState(false);
-    const idNameList = [];
+    const [idNameList, setIdNameList] = useState([]);
+    const{ characterId } = useParams();
+    const [preload, setPreload] = useState(false);
 
     useEffect(() => {
         setLoading(true); // enable loading before fetching data
         setError(null); // Reset any possible lingering errors from previous operations
-        axios.get('127.0.0.1:5000/characters') // Fetch all characters from backend
-        .then(response => {
-            // Populate the idNameList with character IDs and names
-            response.data.forEach(char => {
-                idNameList.push({id: char.id, name: char.name})
-            });
-        }).catch(err => { // Handle errors during fetch
-            setLoading(false); // disable loading so error can be displayed
-            setError(`Could not fetch character list: ${err.message}`);
-            console.error("Error fetching character list:", err);
-        })
+
+        const id = parseInt(characterId);
+        if (!isNaN(id) && id > 0) {
+                setFormData(prev => ({ ...prev, id: id})); // set the formData ID to the provided characterId so that we can fetch the user's desired character data
+                setPreload(true); // set preload flag to true so that we only load the character data for the provided ID
+        } else {
+            axios.get('http://127.0.0.1:5000/characters') // Fetch all characters from backend
+            .then(response => {
+                const characters = response.data;
+                // Populate the idNameList with character IDs and names
+                setIdNameList(characters.map(char => ({id: char.id, name: char.name})));
+                setLoading(false); // Disable loading state after successful fetch
+            }).catch(err => { // Handle errors during fetch
+                setLoading(false); // disable loading so error can be displayed
+                setError(`Could not fetch character list: ${err.message}`);
+                console.error("Error fetching character list:", err);
+            })
+        }
 
     }, []);
     
@@ -51,7 +61,7 @@ export default function EditProduct() {
 
         // Fetch character data if an ID is provided
         if (formData.id && formData.id > 0) {
-            axios.get(`127.0.0.1:5000/characters/${formData.id}`)
+            axios.get(`http://127.0.0.1:5000/characters/${formData.id}`)
             .then(response => {
                 setFormData({
                     id: response.data.id,
@@ -62,8 +72,10 @@ export default function EditProduct() {
                     image_url: response.data.image_url,
                 });
                 setError(null);
+                setLoading(false);
             }) .catch (err => {
                 setError(`Could not fetch character: ${err.message}`);
+                setLoading(false);
             });
         }
     }, [formData.id]);
@@ -110,13 +122,25 @@ export default function EditProduct() {
                 <FormModal character={character} submitted={submitted} showModal={showModal} handleCloseModal={handleCloseModal} request={"put"} error={error} />
 
                 <Form onSubmit={handleSubmit} noValidate validated={validated}>
+                    {loading && (<div className='position-absolute w-100 h-100 bg-secondary bg-opacity-50'>
+                        <div className="d-flex justify-content-center align-items-center h-100 w-100">
+                            <Spinner as="span" animation="border" role="status" variant="info" /><span className='text-info'>loading...</span>
+                        </div>
+                    </div>) }
                     <Row>
                         <Col md="6">
-                            <FloatingLabel controlId="formId" label="ID" className="mb-2 mt-2">
-                                <Form.Select aria-label="Select Character ID from the list" >
+                            <FloatingLabel controlId="formId" label="ID" className="mb-2 mt-2" >
+                                <Form.Select 
+                                aria-label="Select Character ID from the list"  
+                                name="id" 
+                                value={formData.id} 
+                                onChange={handleChange} 
+                                required 
+                                isInvalid={formData.id === 0}
+                                disabled={preload || loading}>
                                     <option>Please select the ID of the character to update</option>
                                     { idNameList.map((char) => (
-                                        <option key={char.id} value={char.id} onClick={() => setFormData({...formData, id: char.id})}>id: {char.id}, name: {char.name}</option>
+                                        <option key={char.id} value={char.id}>id: {char.id}, name: {char.name}</option>
                                     ))}
                                 </Form.Select>
                                 <Form.Control.Feedback type="invalid">
@@ -126,14 +150,16 @@ export default function EditProduct() {
                         </Col>
 
                         <Col md="6">
-                            <FloatingLabel controlId="formName" label="Name" className="mb-2 mt-2">
+                            <FloatingLabel controlId="formName" label="Name" className="mb-2 mt-2" >
                                 <Form.Control
                                     type="text"
                                     placeholder="Name of the character"
                                     name="name"
                                     value={formData.name}
                                     onChange={handleChange}
+                                    isInvalid={formData.name === ""}
                                     required
+                                    disabled = {loading}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     Please provide a valid name.
@@ -151,7 +177,9 @@ export default function EditProduct() {
                                     name="alias"
                                     value={formData.alias}
                                     onChange={handleChange}
+                                    isInvalid={formData.alias === ""}
                                     required
+                                    disabled = {loading}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     Please provide a valid alias.
@@ -170,21 +198,25 @@ export default function EditProduct() {
                                             value="hero"
                                             id="heroRadio"
                                             label="Hero"
-                                            onChange={handleRadioChange}
+                                            onChange={handleChange}
                                             isInvalid={formData.alignment === ""}
                                             feedback="Please choose an alignment"
                                             feedbackType='invalid'
+                                            disabled={loading}
+                                            checked={formData.alignment === "hero"}
                                         />
                                         <Form.Check
                                             type="radio"
                                             name="alignment"
                                             value="villain"
                                             id="villainRadio"
-                                            lable="Villain"
-                                            onChange={handleRadioChange}
+                                            label="Villain"
+                                            onChange={handleChange}
                                             isInvalid={formData.alignment === ""}
                                             feedback="Please choose an alignment"
                                             feedbackType='invalid'
+                                            disabled={loading}
+                                            checked = {formData.alignment === "villain"}
                                         />
                                     </Col>
                                 </Row>
@@ -203,6 +235,8 @@ export default function EditProduct() {
                                     onChange={handleChange}
                                     style={{height:'6.25rem'}}
                                     required
+                                    isInvalid={formData.powers === ""}
+                                    disabled={loading}
                                 />
                                 <Form.Control.Feedback type="invalid">
                                     Please enter the powers of your character in a comma seperated list.
@@ -219,6 +253,8 @@ export default function EditProduct() {
                                     value={formData.image_url}
                                     onChange={handleChange}
                                     required
+                                    isInvalid={formData.image_url === ""}
+                                    disabled={loading}
                                 />
                                 <Form.Control.Feedback type='invalid'>
                                     Please enter a URL of the image of your character.
