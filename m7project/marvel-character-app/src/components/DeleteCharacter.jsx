@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
@@ -12,14 +13,16 @@ import Spinner from 'react-bootstrap/Spinner';
 
 export default function DeleteProduct() {
     const [loading, setLoading] = useState(false);
-    const [characterId, setCharacterId] = useState('');
+    const [charId, setCharId] = useState('');
     const [submitted, setSubmitted] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const handleCloseModal = () => setShowModal(false);
     const [error, setError] = useState(null);
     const [response, setResponse] = useState(null);
-    const idNameList = [];
-    preload = false; // Flag to indicate if we are preloading data based on characterId
+    const [idNameList, setIdNameList] = useState([]);
+    const{ characterId } = useParams();
+    const [preload, setPreload] = useState(false);
+
 
     useEffect(() => {
         setLoading(true); // enable loading before fetching data
@@ -27,27 +30,24 @@ export default function DeleteProduct() {
 
         const id = parseInt(characterId);
         if (!isNaN(id) && id > 0) {
-                setFormData(prev => ({ ...prev, id: id})); // set the formData ID to the provided characterId so that we can fetch the user's desired character data
+                setCharId(id); // set the formData ID to the provided characterId so that we can fetch the user's desired character data
                 setPreload(true); // set preload flag to true so that we only load the character data for the provided ID
-        } else {
-            axios.get('127.0.0.1:5000/characters') // Fetch all characters from backend
-            .then(response => {
-                // Populate the idNameList with character IDs and names
-                response.data.forEach(char => {
-                    idNameList.push({id: char.id, name: char.name})
-                });
-                preload = false; // set preload flag to false so that we can load the character data for the selected ID
-            }).catch(err => { // Handle errors during fetch
-                setLoading(false); // disable loading so error can be displayed
-                setError(`Could not fetch character list: ${err.message}`);
-                console.error("Error fetching character list:", err);
-            })
         }
-
+        axios.get('http://127.0.0.1:5000/characters') // Fetch all characters from backend
+        .then(response => {
+            const characters = response.data;
+            // Populate the idNameList with character IDs and names
+            setIdNameList(characters.map(char => ({id: char.id, name: char.name})));
+            setLoading(false); // Disable loading state after successful fetch
+        }).catch(err => { // Handle errors during fetch
+            setLoading(false); // disable loading so error can be displayed
+            setError(`Could not fetch character list: ${err.message}`);
+            console.error("Error fetching character list:", err);
+        })
     }, []);
 
     const handleChange = (e) => {
-        setCharacterId(e.target.value);
+        setCharId(e.target.value);
     };
 
     const handleSubmit = async (e) => {
@@ -56,13 +56,13 @@ export default function DeleteProduct() {
         setError(null);
         setResponse(null);
 
-        if (!characterId || isNaN(productId) || Number(productId) < 1) {
-            setError('Please enter a valid product ID.');
+        if (!charId || isNaN(charId) || Number(charId) < 1) {
+            setError('Please enter a valid character ID.');
             return;
         }
 
         try {
-            const res = await axios.delete(`http://127.0.0.1:5000/characters/${characterId}`);
+            const res = await axios.delete(`http://127.0.0.1:5000/characters/${charId}`);
             setResponse(res.data);
             setSubmitted(true);
             setShowModal(true);
@@ -88,14 +88,20 @@ export default function DeleteProduct() {
                                 <Form.Select 
                                 aria-label="Select Character ID from the list" 
                                 name="id" 
-                                value="{characterId}" 
-                                onChange="{handleChange}" 
+                                value={charId} 
+                                onChange={handleChange} 
                                 required 
-                                isInvalid={!characterId}
+                                isInvalid={!charId}
                                 disabled={preload}>
                                     <option>Please select the ID of the character to update</option>
                                     { idNameList.map((char) => (
-                                        <option key={char.id} value={char.id}>id: {char.id}, name: {char.name}</option>
+                                        <option 
+                                        key={char.id} 
+                                        value={char.id}
+                                        selected={preload && char.id === charId}
+                                        >
+                                            id: {char.id}, name: {char.name}
+                                        </option>
                                     ))}
                                 </Form.Select>
                                 <Form.Control.Feedback type="invalid">

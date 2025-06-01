@@ -37,22 +37,20 @@ export default function UpdateCharacter( {loading, setLoading, error, setError})
 
         const id = parseInt(characterId);
         if (!isNaN(id) && id > 0) {
-                setFormData(prev => ({ ...prev, id: id})); // set the formData ID to the provided characterId so that we can fetch the user's desired character data
-                setPreload(true); // set preload flag to true so that we only load the character data for the provided ID
-        } else {
-            axios.get('http://127.0.0.1:5000/characters') // Fetch all characters from backend
-            .then(response => {
-                const characters = response.data;
-                // Populate the idNameList with character IDs and names
-                setIdNameList(characters.map(char => ({id: char.id, name: char.name})));
-                setLoading(false); // Disable loading state after successful fetch
-            }).catch(err => { // Handle errors during fetch
-                setLoading(false); // disable loading so error can be displayed
-                setError(`Could not fetch character list: ${err.message}`);
-                console.error("Error fetching character list:", err);
-            })
+            setFormData(prev => ({ ...prev, id: id})); // set the formData ID to the provided characterId so that we can fetch the user's desired character data
+            setPreload(true); // set preload flag to true so that we only load the character data for the provided ID
         }
-
+        axios.get('http://127.0.0.1:5000/characters') // Fetch all characters from backend
+        .then(response => {
+            const characters = response.data;
+            // Populate the idNameList with character IDs and names
+            setIdNameList(characters.map(char => ({id: char.id, name: char.name})));
+            setLoading(false); // Disable loading state after successful fetch
+        }).catch(err => { // Handle errors during fetch
+            setLoading(false); // disable loading so error can be displayed
+            setError(`Could not fetch character list: ${err.message}`);
+            console.error("Error fetching character list:", err);
+        })
     }, []);
     
     useEffect(() => {
@@ -137,10 +135,16 @@ export default function UpdateCharacter( {loading, setLoading, error, setError})
                                 onChange={handleChange} 
                                 required 
                                 isInvalid={formData.id === 0}
-                                disabled={preload || loading}>
+                                disabled={loading}>
                                     <option>Please select the ID of the character to update</option>
                                     { idNameList.map((char) => (
-                                        <option key={char.id} value={char.id}>id: {char.id}, name: {char.name}</option>
+                                        <option 
+                                        key={char.id} 
+                                        value={char.id}
+                                        selected={preload && char.id === formData.id}
+                                        >
+                                            id: {char.id}, name: {char.name}
+                                        </option>
                                     ))}
                                 </Form.Select>
                                 <Form.Control.Feedback type="invalid">
