@@ -17,6 +17,7 @@ This is a full-stack web application for managing Marvel characters. Users can v
 ## Technologies Used
 
 ### Frontend
+
 - React
 - React Router
 - Bootstrap
