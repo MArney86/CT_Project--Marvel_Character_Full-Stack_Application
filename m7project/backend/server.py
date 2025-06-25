@@ -90,16 +90,16 @@ def get_character(id):
 @app.route('/characters', methods=['POST'])
 def create_character():
     try:
-        character_data = character_schema.load(request.json) # type: ignore
+        character_data = character_schema.load(request.json)
         
     except ValidationError as e:
         return jsonify(e.messages), 400
     
-    new_character = Character(name=character_data['name'],  # type: ignore
-                              alias=character_data['alias'],  # type: ignore
-                              alignment=character_data['alignment'],  # type: ignore
-                              powers=character_data['powers'],  # type: ignore
-                              image_url=character_data['image_url']) # type: ignore
+    new_character = Character(name=character_data['name'],
+                              alias=character_data['alias'],
+                              alignment=character_data['alignment'],
+                              powers=character_data['powers'],
+                              image_url=character_data['image_url'])
     
     db.session.add(new_character)
     db.session.commit()
@@ -115,15 +115,15 @@ def update_character(id):
         return jsonify({"message": "Invalid character id"}), 400
 
     try:
-        character_data = character_schema.load(request.json) # type: ignore
+        character_data = character_schema.load(request.json)
     except ValidationError as e:
         return jsonify(e.messages), 400
 
-    character.name = character_data['name'] # type: ignore
-    character.alias = character_data['alias'] # type: ignore
-    character.alignment = character_data['alignment'] # type: ignore
-    character.powers = character_data['powers'] # type: ignore
-    character.image_url = character_data['image_url'] # type: ignore
+    character.name = character_data['name']
+    character.alias = character_data['alias']
+    character.alignment = character_data['alignment']
+    character.powers = character_data['powers']
+    character.image_url = character_data['image_url']
 
     db.session.commit()
     
