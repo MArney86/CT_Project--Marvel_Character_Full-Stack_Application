@@ -13,15 +13,15 @@ import Spinner from 'react-bootstrap/Spinner';
 
 export default function DeleteProduct() {
     const [loading, setLoading] = useState(false);
-    const [charId, setCharId] = useState('');
+    const [charId, setCharId] = useState(0);
     const [submitted, setSubmitted] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const handleCloseModal = () => setShowModal(false);
     const [error, setError] = useState(null);
-    const [response, setResponse] = useState(null);
-    const [idNameList, setIdNameList] = useState([]);
     const{ characterId } = useParams();
     const [preload, setPreload] = useState(false);
+    const [characters, setCharacters] = useState([]);
+    const [character, setCharacter] = useState({});
 
 
     useEffect(() => {
@@ -35,26 +35,32 @@ export default function DeleteProduct() {
         }
         axios.get('http://127.0.0.1:5000/characters') // Fetch all characters from backend
         .then(response => {
-            const characters = response.data;
             // Populate the idNameList with character IDs and names
-            setIdNameList(characters.map(char => ({id: char.id, name: char.name})));
+            setCharacters(response.data);
             setLoading(false); // Disable loading state after successful fetch
         }).catch(err => { // Handle errors during fetch
             setLoading(false); // disable loading so error can be displayed
             setError(`Could not fetch character list: ${err.message}`);
             console.error("Error fetching character list:", err);
         })
-    }, []);
+    }, [charId]);
 
+    // Handle change in character ID selection
     const handleChange = (e) => {
         setCharId(e.target.value);
+        for (let i=0; i<characters.length; i++) { // loop through characters to find the one with the selected ID then set it in the character state
+            if (characters[i].id === parseInt(e.target.value)) {
+                setCharacter(characters[i]);
+            }
+        }
     };
 
+    // Handle form submission for deleting a character
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Prevent default form submission behavior
+        setLoading(true); // Enable loading state while processing the request
         setSubmitted(false);
         setError(null);
-        setResponse(null);
 
         if (!charId || isNaN(charId) || Number(charId) < 1) {
             setError('Please enter a valid character ID.');
@@ -62,26 +68,33 @@ export default function DeleteProduct() {
         }
 
         try {
-            const res = await axios.delete(`http://127.0.0.1:5000/characters/${charId}`);
-            setResponse(res.data);
+            const res = await axios.delete(`http://127.0.0.1:5000/characters/${charId}`); // Send DELETE request to backend
             setSubmitted(true);
             setShowModal(true);
+            setLoading(false);
         } catch (err) {
             setError(`Failed to delete product: ${err.message}`);
             setShowModal(true);
+            setLoading(false);
         }
     };
 
     return (
-        <Container className="mt-5">
-            <h2>Delete Product</h2>
-            <FormModal product={response} submitted={submitted} showModal={showModal} handleCloseModal={handleCloseModal} request={'delete'} error={error} />
-            <Form onSubmit={handleSubmit}>
-                {loading && (<div className='position-absolute w-100 h-100 bg-secondary bg-opacity-50'>
-                    <div className="d-flex justify-content-center align-items-center h-100 w-100">
-                        <Spinner as="span" animation="border" role="status" variant="info" /><span className='text-info'>loading...</span>
-                    </div>
-                </div>) }
+        <div className='compBackground min-vh-100 min-vw-100 position-relative'>
+            {/* Modal to confirm deletion or display errors*/}
+            <FormModal character={character} submitted={submitted} showModal={showModal} handleCloseModal={handleCloseModal} request={"delete"} error={error}/>
+
+            <Container className="translucent w-50 h-50 position-absolute top-50 start-50 translate-middle">
+                <h2 className='text-white'>Delete Character</h2>
+
+                {/* Form for selecting character to delete and submitting DELETE request */}
+                <Form onSubmit={handleSubmit} className='m-3 p-3'>
+                    {/* Display loading spinner if data is being fetched */}
+                    {loading && (<div className='position-absolute w-100 h-100 bg-secondary bg-opacity-50'>
+                        <div className="d-flex justify-content-center align-items-center h-100 w-100">
+                            <Spinner as="span" animation="border" role="status" variant="info" /><span className='text-info'>loading...</span>
+                        </div>
+                    </div>) }
                 <Row className="mt-2 mb-2">
                     <Col md="6">
                         <FloatingLabel controlId="formId" label="ID" className="mb-2 mt-2">
@@ -94,13 +107,12 @@ export default function DeleteProduct() {
                                 isInvalid={!charId}
                                 disabled={preload}>
                                     <option>Please select the ID of the character to update</option>
-                                    { idNameList.map((char) => (
+                                    { characters.map((char) => (
                                         <option 
                                         key={char.id} 
                                         value={char.id}
-                                        selected={preload && char.id === charId}
                                         >
-                                            id: {char.id}, name: {char.name}
+                                            {char.id}: {char.name}
                                         </option>
                                     ))}
                                 </Form.Select>
@@ -112,6 +124,7 @@ export default function DeleteProduct() {
                 </Row>
                 <Row>
                     <Col md="12">
+                        {/* Display error message if there is an error in the form */}
                         <Alert show={!!error} variant="danger">
                             <Alert.Heading>!!!Error!!!</Alert.Heading>
                             <p>{error}</p>
@@ -123,5 +136,6 @@ export default function DeleteProduct() {
                 </Button>
             </Form>
         </Container>
+        </div>
     );
 }

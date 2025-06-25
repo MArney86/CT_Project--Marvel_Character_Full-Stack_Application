@@ -1,0 +1,40 @@
+.compBackground {
+    background-image: url('../assets/s_h_i_e_l_d__badge_insignia_wallpaper_by_viperaviator_d7i18xo.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.translucent {
+    background: rgba(108, 117, 125, 0.75) !important;
+}
+
+.tableTranslucent {
+    --bs-table-bg: rgba(108, 117, 125, 0) !important;
+    --bs-table-color: white !important;
+}
+
+.cardTranslucentHero {
+    --bs-card-bg: rgba(209, 231, 221, 0.75) !important;
+}
+
+.cardTranslucentVillain {
+    --bs-card-bg: rgba(248, 215, 218, 0.75) !important;
+}
+
+.modalTranslucent {
+    --bs-modal-bg: rgba(108, 117, 125, 0.75) !important;
+}
+
+.noticeBackground {
+    background-image: url('../assets/S.H.I.E.L.D.png');
+    background-size: 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.75;
+}
+
+.notFound {
+    background-image: url('../assets/S.H.I.E.L.D.png');
+    background-size: cover;
+    background-position: center;
+}

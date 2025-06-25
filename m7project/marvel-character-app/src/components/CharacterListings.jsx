@@ -7,6 +7,7 @@ import Card from 'react-bootstrap/Card';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { useState, useEffect } from 'react';
+import './components.css'
 
 export default function CharacterListings ({loading, setLoading, error, setError}) {
     const [characters, setCharacters] = useState([]);
@@ -31,19 +32,22 @@ export default function CharacterListings ({loading, setLoading, error, setError
             }).catch(e => { // Catach and display errors that may occur during fetch
                 setError(`Failed to fetch character: ${e.message}`)
                 console.log(error)
+                setLoading(false);
             });
     },[])
 
     return(
-        <div>
+        <div className='compBackground'>
+            {/* Display error alert if there is an error */}
             {error && <Alert show={!!error} variant="danger">
                     <Alert.Heading>!!!Error!!!</Alert.Heading>
                     <p>{error}</p>
                 </Alert>}
-            {loading ? (<>
             <h2>Heros and Villains</h2><br/>
+            {loading ? (<>
             <Container fluid>
                 <Row  sm={2} lg={3} xxl={4}>
+                    {/* Display loading placeholder while data is being fetched */}
                     {placeholder.map(holder => (
                         <Col key={holder}>
                             <Card className='content-justified-center text-center bg-secondary-subtle mt-2 mb-2'>
@@ -68,14 +72,14 @@ export default function CharacterListings ({loading, setLoading, error, setError
                 </Row>
             </Container>
             </>):(<>
-            <h2>Heros and Villains</h2><br/>
+            {/* Display character cards when data is fetched */}
             <Container fluid>
                 <Row  sm={2} lg={3} xxl={4}>
                     {characters.map(character => (
                         <Col key={character.id}>
                             <Link to={`/characters/${character.id}`} className="text-decoration-none">
-                                <Card className={`content-justified-center text-center mt-2 mb-2 ${character.alignment === 'hero' ? 'bg-success-subtle' : 'bg-danger-subtle'}`}>
-                                    <Card.Header>{character.name}</Card.Header>
+                                <Card className={`content-justified-center text-center mt-2 mb-2 ${character.alignment === 'hero' ? 'cardTranslucentHero' : 'cardTranslucentVillain'}`}>
+                                    <Card.Header><h3>{character.name}</h3></Card.Header>
                                     <Card.Body >
                                         <Card.Img variant="top" src={character.image_url ? character.image_url:null} style={{maxHeight:'18.75rem', maxWidth: '100%', width:'auto', height:'auto'}} />
                                         <Card.Title className='p-3 border-secondary border-3'>{character.name}</Card.Title>

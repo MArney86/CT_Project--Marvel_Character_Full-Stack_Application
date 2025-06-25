@@ -8,9 +8,9 @@ import AddCharacter from './components/AddCharacter';
 import UpdateCharacter from './components/UpdateCharacter';
 import DeleteCharacter from './components/DeleteCharacter';
 import { useState } from 'react';
-import './App.css';
 
 function App() {
+  // State to manage loading and error states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 

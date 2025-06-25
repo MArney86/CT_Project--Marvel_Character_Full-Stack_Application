@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import styles from './NotFound.module.css'
+import './components.css'
 
 export default function NotFound() {
+  // state to manage the countdown timer and navigation using useNavigate hook
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(10); // Start countdown at 10 seconds
 
-  useEffect(() => {
+  useEffect(() => { // Effect to handle countdown and redirection
     // Set up an interval to decrease the countdown
     const interval = setInterval(() => {
       setCountdown((prevCountdown) => prevCountdown - 1);
@@ -25,7 +26,7 @@ export default function NotFound() {
   }, [navigate]);
 
   return (
-    <div className={`${styles.mainBody} h-100`}>
+    <div className="notFound h-100">
         <div className='text-warning text-center position-absolute top-50 start-50 translate-middle'>
             <h2 className='fw-bolder'>404 Not Found</h2>
             <p>I am sorry, that location does not exist</p>
